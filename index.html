@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href = "https://ddwall.github.io/" />
+		<link rel="stylesheet" type="text/css" href="Website_Data/style.css">
+	</head>
+ 	<body>
+		<script id="variables">
+			const event = "Tumbling"
+			const max_dd = 14.0;
+			const min_dd = 3.5;
+			const show_every = 0.5;
+			const cards = [
+			];
+		</script>
+		<script language="javascript" type="text/javascript" src="Website_Data/header.txt"></script>
+		<script>document.getElementById(event).style.color = "var(--red)";</script>
+		<div class="wall">
+			<div class="dropdown">
+				<button onclick="document.getElementById('filters-container').classList.toggle('show_dropdown')" class="dropdown_button">Filters</button>
+				<div id="filters-container" class="filters-container">
+				</div>
+			</div>
+			<center>
+				<table class="markers" id="top_of_wall" width=95%>
+					<colgroup>
+						<col width=47%>
+						<col width=6%>
+						<col width=47%>
+					</colgroup>
+				</table>
+			</center>
+		</div>
+		<script language="javascript" type="text/javascript" src="Website_Data/footer.txt"></script>
+	</body>
+	<script id="functions">
+		//function to add filter buttons for each unique entry of a certain data type
+		function AddButtonsUnique(data_type,hideshowall) {
+			var capitalized_name = data_type.charAt(0).toUpperCase() + data_type.slice(1);
+			var flags = [];
+			var i;
+			var p = document.createElement('p');
+			document.getElementById("filters-container").appendChild(p);
+			p.innerHTML = p.innerHTML + capitalized_name;
+			if (hideshowall) {
+				AddButtonsShowHideAll(data_type)
+			}
+			for (i = 0; i < cards.length; i++) {
+				if(flags[cards[i][data_type]] == undefined) {
+				  flags[cards[i][data_type]] = true;
+				  //make button
+				  var a = document.createElement('a');
+				  a.setAttribute('class',"filter active " + data_type);
+				  a.setAttribute('id',cards[i][data_type])
+				  a.setAttribute('onclick',"filterCards('" + cards[i][data_type] + "');this.classList.toggle('active');filterCards();");
+				  document.getElementById("filters-container").appendChild(a);
+				  a.innerHTML = a.innerHTML + cards[i][data_type];
+				}
+			}
+		}
+		//function to add "Show All" and "Hide All" filter buttons for a certain data type
+		function AddButtonsShowHideAll(data_type) {
+			var a1 = document.createElement('a');
+			a1.setAttribute('class',"filter");
+			a1.setAttribute('onclick',"ActivateAll('" + data_type + "');filterCards();");
+			document.getElementById("filters-container").appendChild(a1);
+			a1.innerHTML = a1.innerHTML + "Show All ";
+			var a2 = document.createElement('a');
+			a2.setAttribute('class',"filter");
+			a2.setAttribute('onclick',"DeactivateAll('" + data_type + "');filterCards();");
+			document.getElementById("filters-container").appendChild(a2);
+			a2.innerHTML = a2.innerHTML + "Hide All ";
+		}
+		//function to make all filter buttons of a certain class active
+		function ActivateAll(data_type) {
+			var buttons = document.getElementsByClassName('filter');
+			for(i = 0; i < buttons.length; i++) {
+				if (buttons[i].classList.contains(data_type)) {
+					buttons[i].classList.add("active")
+				}
+			}
+		}
+		//function to make all filter buttons of a certain class inactive
+		function DeactivateAll(data_type) {
+			var buttons = document.getElementsByClassName('filter');
+			for(i = 0; i < buttons.length; i++) {
+				if (buttons[i].classList.contains(data_type)) {
+					buttons[i].classList.remove("active")
+				}
+			}
+		}
+		//function to show all cards, then hide any inactive filters
+		function filterCards() {
+			var i, j;
+			var inactiveids = [];
+			var buttons = document.querySelectorAll('.filter:not(.active)')
+			for(i = 0; i < buttons.length; i++) {
+				if (inactiveids.includes(buttons[i].id) == false && buttons[i].id != "") {
+					inactiveids.push(buttons[i].id)
+				}
+			}
+			var cardlist = document.getElementsByClassName('card');
+			for (i = 0; i < cardlist.length; i++) {
+				cardlist[i].classList.add("show")
+				for (j = 0; j < inactiveids.length; j++) {
+					if (cardlist[i].className.indexOf(inactiveids[j]) > -1) {
+						cardlist[i].classList.remove("show")
+					}
+				}
+			}
+		}
+		//function to add a card to the wall
+		function addcard(newcard, side) {
+			var table = document.createElement('table');
+			table.setAttribute('class','card' + " " + newcard.country + " " + newcard.gender);
+			if (side == "left") {
+				col = 0;
+			} else if (side == "right") {
+				col = 2;
+			} else {
+				return;
+			}
+			cell = document.getElementById("top_of_wall").rows[10*max_dd-10*newcard.dd].cells[col];
+			cell.appendChild(table);
+			var td1 = document.createElement('td');
+			td1.setAttribute('class','flag');
+			table.appendChild(td1);
+			td1.innerHTML = td1.innerHTML + "<img src=\"Website_Data/Flags/" + newcard.country + ".png\" class=\"flag-image\"/>";
+			var td2 = document.createElement('td');
+			td2.setAttribute('class','name');
+			table.appendChild(td2);
+			td2.innerHTML = td2.innerHTML + "<a href=" + newcard.link + ">" + newcard.name + "</a>" + "&nbsp;";
+			var td3 = document.createElement('td');
+			td3.setAttribute('class','dd_date');
+			table.appendChild(td3);
+			td3.innerHTML = td3.innerHTML + "<center><span class=\"dd\">" + newcard.dd.toFixed(1) + "</span><br><span class=\"date\">" + newcard.date + "</span></center>";
+		}
+	</script>
+	<script id="build-site">
+		//add page title
+		var title = document.createElement('title');
+		document.getElementsByTagName("head")[0].appendChild(title)
+		title.innerHTML = event + " DD Wall"
+		//build wall
+		var i;
+		for (i = 0; i < (max_dd-min_dd)*10+1; i++) {
+			if (i%(show_every*10) == 0) {
+				dd_val = ((max_dd*10-i)/10).toFixed(1)
+			} else {
+				dd_val = "-"
+			}
+			addrow(dd_val)
+		}
+		function addrow(row_num) {
+			var tr = document.createElement('tr');
+			document.getElementById("top_of_wall").appendChild(tr);
+			var td1 = document.createElement('td');
+			td1.setAttribute('class','left_col');
+			tr.appendChild(td1);
+			var td2 = document.createElement('td');
+			td2.setAttribute('class','middle_col');
+			tr.appendChild(td2);
+			var td3 = document.createElement('td');
+			td3.setAttribute('class','right_col');
+			tr.appendChild(td3);
+			td2.innerHTML=td2.innerHTML + row_num;
+		}
+		//add cards to wall
+		for (i = 0; i < cards.length; i++) {
+			if (document.getElementById("top_of_wall").rows[10*max_dd-10*cards[i].dd].querySelectorAll(".card").length%2 == 1) {
+				addcard(cards[i],"left")
+			}
+			else {
+				addcard(cards[i],"right")
+			}
+		}
+		//Show all cards
+		filterCards()
+		//Add filter buttons
+		AddButtonsUnique('gender',false)
+		AddButtonsUnique('country',true)
+	</script>
+</html>
